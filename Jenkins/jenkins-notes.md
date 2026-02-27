@@ -2,6 +2,10 @@ To use Jenkinsfile from a repo
 
 - Add the main repo url
 
-- Branch spelling in Jnekins should be " main " , no slahses, barckets etc
+- If private repo > add credentials in Jenkins 
 
-- Scrip Path should be "folder-with-pipeline/Jenkinsfile
+- You can't use the full repo URL string, you need to split it in two: branch and path
+
+- Branch spelling in Jenkins should be " main " , not /main - no slashes
+
+- Script Path should be "folder-with-pipeline/Jenkinsfile
