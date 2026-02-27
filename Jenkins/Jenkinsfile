@@ -1,0 +1,145 @@
+// Jenkins code examples
+
+pipeline {
+    agent { label 'master'}
+//    triggers {
+//        cron('H 21 * * 0-6')
+//    }
+    stages {
+        stage('Running-bat') {
+            steps {
+                echo 'Running bat commands'
+                bat """
+                  cd c:\\qa\\bin
+                  :: This is a comment using double colons
+                """  
+
+            }
+        }
+            
+        stage('Update All') {
+            steps {
+                powershell '''
+                    $folders = "C:\\Tools\\scripts",
+                               "C:\\Tools\\Automation\\Scripts",
+                               "C:\\Tools\\Automation\\root",
+                               "C:\\Tools\\Automation\\root\\common" 
+                    foreach ($folder in $folders) {
+                        echo "current folder is: $folder"
+                        cd $folder
+                        svn status --show-updates
+                    }
+                '''     // use single ''' quotes and \\ slashes to avoid groovy issues with PS!!!
+            }
+        }
+
+
+}
+
+
+                //SVN Checkout
+                checkout([$class: 'SubversionSCM', 
+                additionalCredentials: [[credentialsId: '9e7494ab-5b37-4065-b51f-705440e8f73b', realm: '<http://svn:8080> VisualSVN Server']],
+                excludedCommitMessages: '#nobuild', 
+                excludedRegions:
+
+
+// Group stages for parallel execution        
+        stage('Tests - parallel') {
+            parallel {
+                stage('Test') {
+                    steps {
+                        echo 'Testing..'
+                    }
+                }
+                stage('Test2') {
+                    steps {
+                        echo 'Testing..'
+                    }
+                }
+            }
+        }  
+// End parallel execution              
+        stage('Deploy') {
+            steps {
+                echo 'Deploying....'
+            }
+        }
+    }
+}                
+
+
+    stages {
+        stage('Build') {
+            steps {
+                powershell '''
+                  echo '*** Running powershell commands'                
+                  # Git folder cleanup 
+                  if (Test-Path "repo") { Remove-Item -Recurse -Force "repo" }
+                  # Clone and checkout main branch and create a folder called "repo"
+                  git clone --branch main --single-branch http://somegit.git repo
+                  cd repo
+                  git status
+                  ls
+                  echo '*** Calling an external ps1 script file'  
+                  & ".\\Tools\\zdravko\\hello.ps1"
+                  echo '*** Calling an external py script file'  
+                  python ".\\Tools\\zdravko\\hello.py"
+                '''
+            }
+        }
+           
+
+    }
+}
+
+
+
+
+pipeline {
+    agent { label 'master'}
+    environment {
+      COPILOT_PAT = "this-is-my-github-token123"
+    }
+    stages {
+        stage('Build') {
+            steps {
+                powershell '''
+                  echo '*** Running powershell commands'    
+                  echo "my variable is $env:COPILOT_PAT"            
+                  winget
+                '''
+            }
+        }
+           
+
+    }
+}
+
+
+pipeline {
+    agent { label 'master'}
+    environment {
+      var_copilot_pat_zdr = credentials('copilot-pat-zdr')  // Token is declared in Jenkins as global secret key with name "copilot-pat-zdr"
+    }
+    stages {
+        stage('Build') {
+            steps {
+                powershell '''
+                  echo '*** Refresh shell env for user'  
+                  $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+                  echo '*** Confirm github cli version' 
+                  gh --version
+                  # Map credentials to github env variables, set workspace dir as github config
+                  $env:GH_TOKEN     = $env:var_copilot_pat_zdr
+                  $env:GITHUB_TOKEN = $env:var_copilot_pat_zdr       
+                  $env:GH_CONFIG_DIR = Join-Path $env:WORKSPACE "ghconfig"
+                  New-Item -ItemType Directory -Force -Path $env:GH_CONFIG_DIR | Out-Null       
+                  echo '*** Authenticate with GH_TOKEN/GITHUB_TOKEN)'
+                  gh auth login --hostname github.com --with-token       
+                  gh auth status --hostname github.com       
+                  echo '*** Logged in as:'
+                  gh api user -q ".login"
+                '''
+            }
+        }
