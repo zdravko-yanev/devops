@@ -37,11 +37,11 @@ pipeline {
 }
 
 
-                //SVN Checkout
-                checkout([$class: 'SubversionSCM', 
-                additionalCredentials: [[credentialsId: '9e7494ab-5b37-4065-b51f-705440e8f73b', realm: '<http://svn:8080> VisualSVN Server']],
-                excludedCommitMessages: '#nobuild', 
-                excludedRegions:
+//SVN Checkout
+checkout([$class: 'SubversionSCM', 
+additionalCredentials: [[credentialsId: '9e7494ab-5b37-4065-b51f-705440e8f73b', realm: '<http://svn:8080> VisualSVN Server']],
+excludedCommitMessages: '#nobuild', 
+excludedRegions:
 
 
 // Group stages for parallel execution        
@@ -95,7 +95,7 @@ pipeline {
 
 
 
-
+// Setup global stage variables and call them with $env:my_new_var
 pipeline {
     agent { label 'master'}
     environment {
@@ -117,6 +117,8 @@ pipeline {
 }
 
 
+
+// Pass Jenkins credntial to env variable
 pipeline {
     agent { label 'master'}
     environment {
@@ -143,3 +145,5 @@ pipeline {
                 '''
             }
         }
+
+        
