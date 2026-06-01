@@ -1,0 +1,549 @@
+Passing grade is 720/1000
+65 questions
+50 scored questions
+15 unscored questions (no points for them, used as test, benchmark, catch cheating)
+no penalty wrong answer
+about 2 hours exam time
+about 2 min per question
+
+  
+
+####################### SECURITY, ACCOUNTS, GOVERNANCE, MIGRATION #############################
+
+
+Aurora storage auto-scales as data grows
+You don’t provision disk size manually
+
+
+
+AWS Config is a cloud service that tracks your resource inventory, configuration history, and compliance against internal policies. It is distinct from AWS CloudTrail; while CloudTrail logs who made an API call, Config records how a resource was changed and whether that change remains compliant
+
+
+AWS Trusted Advisor is a built-in service that continuously inspects your AWS environment and compares configurations to established best practices. It provides actionable recommendations to optimize costs, boost performance,
+
+AWS Shield Standard is an automatic, free DDoS protection service included with all AWS accounts, covering common network-layer attacks (Layers 3/4). Standard only works o network level.
+AWS Shield Advanced is a paid subscription ($3,000/month) offering tailored Layer 7 protection, 24/7 access to the DDoS Response Team (DRT), automated application mitigations, and DDoS cost protection. Advanced works also on app level threats. SQL injection is layer 7 attack
+
+
+security group - it is an azure NSG you attach it to networks and ec2
+security policy - allow access to resource - you attach it to resource = resource policy?
+
+IAM role contains one or several IAM policies. Role can be "report reader" (with policies to access quicksight reports and S3 files)
+To grant access to resource, you can do IAM role - from user side or resource policy - on the resource itself, taht will have allow action for some users or groups
+
+Policy cant be attached by itself, it needs to be contained in a role, you attach the role to the instance
+
+aws iam role is authorization - creates type of IAM identity that can be authenticated and authorized to utilize an AWS resource, whereas a policy defines the permissions of the IAM identity.
+
+Policy has allowed actions to access resource
+
+An AWS resource-based policy is a JSON document attached directly to a resource (like an Amazon S3 bucket or Lambda function) rather than an IAM user or role. It specifies who (Principal) can access the resource and what actions they are permitted to perform!
+Resource policy is json
+action - allow
+source ip : 0.0.0.0/0
+
+
+AWS hierarchy goes like this:
+root (main container for the accounts)
+Org units - grouping for accounts, can be dev and prod for example
+Member accounts - contained in OU. 
+One AWS account can belong to only ONE OU at a time.
+
+Only 1 management account
+Accounts cannot belong to multiple organizations
+If you have account and create an Organization, it creates root logical container for you automatically. The account becomes admin and billing account.
+
+ORG UNITS - are placed under root of your org
+1 account can belong to only one OU.
+Usually you attach service (control?) policies to them
+
+
+Service Control Policy (SCP) can be attached to root , OU or individual accounts. SCP are json. IAM has action allow, SCP only have action restrict. Root-level SCP does NOT affect management account
+
+You can create OU called "dev" and OU called "prod". I will create an account for each called "infrastructure" and create my compute resources. How do I add end users to access them?
+Use AWS IAM Identity Center (SSO), create user groups in there "admins" for devops teams, "peasants" for users. It can pull user groups from AD or Okta.
+Or you can skip aws sso and directly integrate with AD and Okta. Users will pass through an SSO page.
+Secure the management account wiht mfa and mail that is a team mailbox (admin team). Do not use it to deploy resources!
+Cloudtrail can detect if it is used. You can set cloudtrail > eventbridge > SNS alert (send mail, slack) if management account is used
+Identity center is for internal users to access aws resources.
+
+Amazon Cognito is a fully managed customer identity and access management (CIAM) service. It provides secure authentication, authorization, and user management for web and mobile applications. Something like AD? Has User Pools: A fully managed, secure user directory.
+It is more like AD B2C - it is about user logins to apps and identities, not about managing of user and devices.
+
+
+AWS Systems Manager (SSM) is an operations hub that helps you securely manage and automate infrastructure across AWS, on-premises, and multicloud environments
+It has several tools. One of them is Maintenance Windows. It helps you define a schedule for when to perform potentially disruptive actions on your nodes.
+
+
+ALL aws kms events (create key, encrypt, decrypt) are captured in AWS CloudTrail. This is a managed governance and compliance service that tracks and records user activity and API calls across your AWS infrastructure.
+
+Amazon Macie is a fully managed data security and privacy service that uses machine learning and pattern matching to discover, classify, and protect sensitive data across your AWS environment. It primarily scans Amazon Simple Storage Service (Amazon S3) to identify personally identifiable information (PII), financial data, and AWS credentials.
+
+AWS Shield is DDoS protection service, free is layer 4, paid is layer 7
+
+AWS Direct Connect is a cloud service that links your on-premises network directly to AWS,
+
+
+AWS Certificate Manager (ACM) is a fully managed service that provisions, manages, and deploys public and private SSL/TLS certificates for AWS-based websites and applications. It eliminates manual purchasing, uploading, and renewing processes by automating certificate lifecycles and integrating seamlessly with AWS
+
+
+
+Amazon GuardDuty is a fully managed threat detection service (IDS)
+
+
+AWS Config is a cloud service that tracks your resource inventory, configuration history, 
+
+
+
+IAM roles for service accounts (IRSA) configures Kubernetes applications running on AWS with fine-grained IAM permissions to access various other AWS resources such as Amazon S3 buckets, Amazon DynamoDB tables, and more
+
+
+AWS Organizations is a free account management service that allows you to consolidate, centrally manage, and govern multiple AWS accounts.
+aws control tower is for managing multi account environments, guardrails are its policies
+ aws organizations enforces org level policies - also valid solution
+
+AWS IAM Identity Center is the successor to AWS Single Sign-On (SSO) and AWS's recommended service for workforce identity and access management.
+if I have a dev account in aws and prod account, how do I make a group of users admins for both? 
+Enable AWS Organizations 
+enable IAM Identity Center (SSO).
+create user group "admins"
+assign to dev and prod accounts
+
+
+
+
+A cutover instance in AWS is the final, production-ready target server launched during a cloud migration, typically executed via the AWS Application Migration Service (MGN). In the MGN Console, select your server, open the Test and Cutover menu, and choose Launch cutover instances.
+
+
+######################### S3 STORAGE THEORY #########################################################
+
+has 3 families:
+-block
+-object
+-file
+
+BLOCK is for high performance tasks has two types:
+-instance store - vm volume- is for caching, on instance restart is lost and non-persistent
+-EBS - elastic block storage - is for persistent data, can de disk attached to vm
+
+OBJECT storage
+-S3 - simple storage - can be used for storing websites data, backups
+can be used for archive data. Glacier service is here
+
+FILE storage - shared drives
+-EFS- elastic file storage (only for linux)
+-FSX -
+-fsx file storage for windows can also be used on linux as smb
+-fsx for luster - high performance
+
+
+
+Exam question: A company want to use fsx file share for windows. They want to manage permissions with their on premises active directory:
+a - set active directory connector, map active directory groups to IAM groups
+b- join the fsx to active directory
+you can't map AD groups to IAM groups, you map to IAM roles and also
+“FSx does not support Active Directory Connector”. User groups are managed directly within your Active Directory domain (either AWS Managed AD or self-managed AD).
+
+EC2 Instance Store - high performance storage, data is lost if the vm is restarted.
+It is fixed by the instance type and can't be resized or detached. Included in the vm costs.
+EBS has intact data, can be resized or detached
+
+
+Amazon S3 Object Lock prevents objects from being deleted or overwritten for a fixed retention period. Governance mode allows users with special IAM permissions (s3:BypassGovernanceRetention) to override the lock. Compliance mode completely locks the object; not even the root account can delete it until the period
+
+Amazon Data Lifecycle Manager (DLM) is a native AWS service to automate the management of Amazon Elastic Block Store (EBS) snapshots and EBS-backed Amazon Machine Images (AMIs).
+
+The Amazon S3 File Gateway is a hybrid cloud storage service that bridges on-premises applications to Amazon S3.
+
+Amazon S3 File Gateway - supports NFS and SMB
+Volume Gateway: Provides cloud-backed block storage volumes using the iSCSI protocol.
+
+Amazon S3 automatically enables server-side encryption with Amazon S3 managed keys (SSE-S3) for new object uploads. Fully auto managed, you have no control. You can choose SSE-KMS if you want BOTH encryption and key management. SSE-kms is more control and logs.
+s3 bucket has static website hosting - this is low effort low costs solution
+
+
+Amazon S3 Batch Operations is a fully managed service that lets you run large-scale, automated actions—such as copying, tagging, or restoring files—on billions of objects at once
+
+
+
+AWS Transfer Family is a fully managed, highly scalable service that simplifies migrating and operating Secure File Transfer Protocol (SFTP)
+
+
+EBS volumes are AZ locked so when transferring the architecture to a different AZ the data can no longer be received by users whereas with EFS volume we can have EC2 instances across AZs
+ebs - block storage - 1 instance per 1 availability zone
+efs - file storage - good for microservices with many users or services accessing the storage at the same time
+
+Note File shares use internal Ip's and are locked per VPC
+
+Amazon Elastic Block Store (EBS) provides persistent, highly available block-level storage volumes for use with Amazon EC2 instances. It acts like a raw virtual hard drive, allowing you to format file systems, run databases, or host OSs. Data persists independently of the EC2 instance lifecycle.
+
+Amazon EBS fast snapshot restore (FSR) enables you to create a Amazon EBS volume from an EBS snapshot that is fully initialized after creation.
+
+CloudFront provides two ways to send authenticated requests to an Amazon S3 origin: origin access control (OAC) and origin access identity (OAI).
+
+
+S3 is best option for media files!
+EFS should be used with Kubernetes and containers for network storage, or for Apps needing file-level access (open/read/write).
+
+EFS lives inside a VPC subnet. 
+You cannot access EFS directly from another VPC by default, nfs works with internal IP's. Real world architecture with clusters and storage will span several vpc's:
+
+VPC A → EKS cluster A
+VPC B → EKS cluster B
+VPC C → EFS (mount targets)
+Peering is needed between A and C and B and C
+You will also need security groups to allow nfs port 2049.
+EFS uses dns resolution: fs-12345678.efs.region.amazonaws.com will be mapped to some IP
+
+EFS is bound to a single VPC and single region! For disaster recovery, you can set primary EFS in region1 and secondary EFS in region2 or on premises with replication. AWS DataSync will be used for the replication. you must create an AWS DataSync transfer location. DataSync can use this location as a source or destination for transferring data.  Creating a DataSync IAM role for file system access is also needed.
+
+
+
+
+
+
+################################## AWS EC2 COMPUTE #######################################
+
+
+IAM role (execution role)	What the Lambda can do
+Resource-based policy (this case)	Who can call the Lambda
+
+
+EC2 instances in a “cluster” are normally in the same Region.
+
+
+bucket and RDS can call lambda directly and no need to pass through eventbridge
+RDS events native integration is with SNS, SNS can ping SQS and Lambda. 
+Yes — S3 events can trigger a Lambda function.
+S3 bucket → event (upload/delete) → Lambda → your logic
+
+S3 event can not trigger sagemaker pipeline > pass through eventbridge
+
+sagemaker pipelines are ML pipelines, I guess deploy, train agents and models-end result is you "make a sage"?
+
+
+
+
+VPC-virtual private cloud is used to logically separate customer1 and customer2 
+
+AMI - amazon machine image - OS images to build vm's
+1 ami can be used on many vm's. You can customize the ami, install and configure it
+
+VM Instances - cpu optimized, memory, storage
+
+Security group rules are attached to VM instances :
+source ip / protocol / port / destination
+
+SPOT
+ON DEMAND
+RESERVED
+DEDICATED - EC2 instances - can be on the same physical server - dedicated instances
+
+
+AWS Step Functions is a visual workflow service designed to orchestrate multiple services (including Lambda).
+
+
+AWS Fargate is a serverless, pay-as-you-go compute engine for containers. Scales per container. Less config on your sided.
+The alternative is ECS with EC2 - this is virtual servers. Scales with adding EC2 instances to the cluster. More config on your side.
+
+ECS containers - with Fargate - aws manages everything.
+With Ec2- creates a vm cluster, ECS agent (docker?) is installed on the cluster, it launches containers.
+You set container tasks in the GUI, it pulls containers from ECR. If you run multiple copies of container, you need an LB.
+
+
+
+AWS Elastic Beanstalk to quickly deploy and manage applications in the AWS cloud (web apps).
+It supports .NET and is highly available. It is a wizard > create and app and select EC2 instance.
+Provisioning and networking is handled by aws. Backend is containers probably?
+
+
+
+LAMBDA functions - resource based policy allows service to invoke lambda function
+ - execution roles tells lambada what to do: ping api, send mail, ect
+-resource policy on s3 bucket - allow to call lambda
+
+
+
+EC2 autoscaling 
+- Target Tracking continuously adjusts capacity to maintain a specific metric (like a thermostat). It reacts quicker.  
+- Simple Scaling is reactive, after something happens - it adds or removes fixed units based on rigid alarm thresholds.
+
+
+
+
+EC2 Fleet and Spot Fleet are designed to be a useful way to launch a fleet of tens, hundreds, or thousands of Amazon EC2 instances in a single operation. Each instance in a fleet is either configured by a launch template or a set of launch parameters 
+
+
+############################### AWS NETWORKING ############################################
+
+
+
+NAT Gateway = managed by aws, scalable, highly available, more expensive
+NAT Instance = EC2 VM you manage yourself, manual scaling, no auto high availability, more features
+Botha allow outgoing traffic in private vpc and block incoming
+
+
+VPC peering is inherently a bidirectional networking connection BUT if you want one directional flow:
+-use ACL
+-use routing tables
+
+Route53resolvers:
+• Inbound Resolver endpoints allow DNS queries to your VPC from your on-premises network or another VPC.
+• Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network or another VPC.
+
+
+IGW → attached once to VPC
+Each VPC → its own IGW, 1 vpc can be attached to 1 internet gateway
+
+Internet gateway - requires a route (0.0.0.0/0) and public or elastic IP
+
+
+Edge locations are AWS data centers designed to deliver services with the lowest latency possible. Amazon has dozens of these data centers spread across the world. They’re closer to users than Regions or Availability Zones, often in major cities, so responses can be fast and snappy.
+
+Core VPC Components:
+ vpc is similar to private virtual network.
+vpc spans 1 region.
+1 vpc instance can have about 200 subnets.
+• Subnets: Ranges of IP addresses within your VPC. You can divide these into Public Subnets (for web servers and resources requiring internet access) and Private Subnets (for secure backend databases).
+
+
+valid cidrs for aws vpc are between /16 and /28
+
+
+A single AWS VPC can have both public and private subnets — this is actually the standard design.
+
+Between private and public subnets you need NAT gateway. NAT gateways is outgoing traffic only.
+
+Public subnets need Internet gateway to reach internet. If vm has public IP, without IGW = no access - vpc is always isolated.
+
+Alternative setup to open your vpc would be cloudfront (public endpoint).
+IGW needs a route table to work
+
+Subnets are placed in aws regions.
+Create route table and associate it to subnet.
+
+
+There are other types of gateways, apart from igw:
+NAT Gateway: NO INCOMING TRAFFIC with it, only outbound connections 
+VGW - virtual private gateway - used for virtual private tunneling. connects on prem to aws
+CGW - customer gateway - works with vgw
+TGW - transit gateway - connects vpc with on prem networks
+private  networking has two types:
+-VPC peering- connects two vpc's
+-vpc endpoints - connect instances - traffic only passes in internal aws network
+
+
+• Route Tables: A set of rules (routes) used to determine where network traffic is directed. [1, 2, 3, 4, 5]
+Security Layers
+• Security Groups: Virtual firewalls that control inbound and outbound traffic for individual resources (like an EC2 instance).
+Network Access Control Lists (NACLs): Optional, stateless firewalls that act as a layer of security for entire subnets
+
+• AWS Transit Gateway: A central hub that allows you to interconnect multiple VPCs, on-premises networks, and remote accounts.
+• VPN / Direct Connect: Hardware or dedicated private network connections that link your on-premises data center or corporate network to your AWS VPC
+AWS Global Accelerator operates primarily at Layer 4 (Transport Layer).
+It directs traffic based on protocols like TCP and UDP without inspecting the contents of the payload (like HTTP headers)
+A standard accelerator in AWS Global Accelerator directs client traffic over the global AWS private network to the optimal regional endpoint based on health, client location, and policies. A standard accelerator can distribute traffic to the following resources in one or multiple AWS regions: 
+-Application Load Balancers (ALB)
+-Network Load Balancers (NLB)
+-Amazon Elastic Compute Cloud (EC2) instances
+-Elastic IP addresses (EIPs) 
+
+
+Amazon CloudFront operates primarily at Layer 7 (Application Layer). It integrates with WAF. Improves performance for both cacheable content (such as images and videos) • Dynamic content (such as API acceleration and dynamic site delivery) • Content is served at the edge
+
+ALB - application load balancer - use it with SC2 scaling group of vm's
+
+ AWS Gateway Load Balancer (GWLB) is specifically designed to deploy, scale, and manage third-party virtual network appliances—like firewalls and intrusion detection systems—transparently intercepting traffic. 
+
+Outbound Resolver endpoints allow DNS queries from your VPC to your on-premises network or another VPC.
+
+CloudFront provides two ways to send authenticated requests to an Amazon S3 origin: origin access control (OAC) and origin access identity (OAI).
+
+
+An AWS Security Group ID (e.g., sg-0123456789example) is the unique identifier for a virtual firewall that controls inbound and outbound traffic for your AWS resources. This corresponds AZURE NSG?
+When launching an EC2 instance you associate it to the security group ID(s) to apply the necessary firewall rules.
+
+
+
+##################################################### AMAZON MESSAGE QUEUE SERVICES #################
+
+-SQS - simple queue - can be used for modern microservices, it stores messages, and lambda function or other automation can call them.
+It is like a mailbox. it work with olling - other services will ask it if there is something for them.
+
+-Amazon MQ - good for legacy systems, scaling and management by the client
+
+-SNS - notification service, can't store message
+
+-Eventbridge - smart router → route events based on rules
+
+
+Message delivery pattern
+	• SQS → one consumer per message (work queue) 
+	• SNS → all subscribers get the message (fan-out) 
+	• EventBridge → selected targets based on rules (smart fan-out)
+
+
+If you reach 1000 messages per second, you are over the SQS capacity
+Standard fifo is 300 messages per second
+standard With Batching: Up to 3,000 messages per second (300 API calls X 10-message batch limit). 
+
+
+################################## DATA ANALYICS PRODUCTS  ##############
+
+AWS Glue is a fully managed, serverless data integration service. It enables users to discover, prepare, and combine data for analytics, machine learning, and application development without managing infrastructure.
+
+
+AWS Lake Formation is a fully managed service that simplifies building, securing, and managing data lakes
+lake formation has blueprints and workflows.
+blueprints load data.
+workflows transform raw data
+
+Choose AWS Glue if you need a fully managed, serverless ETL service designed for simple data integration. 
+Choose Amazon EMR if you need to manage infrastructure and more control, run complex custom code 
+
+
+
+################################## DATABASES  ##############
+
+
+IN SOME QUESTION THEY SAY AURORA SCaLES SLOWER ON EVENTS - compared to dynamo
+
+RDS are deployed in single region (main) but can have read replicas in other regions
+
+RDS = write to single-region primary + optional read-only replicas in other regions
+Aurora = 1 primary region (writer) and multiple secondary regions (read-only)
+Aurora Multi-Master special type of deployment, 1 single region with multi write instances
+DynamoDB Global Tables = Multi-region, You can write in ANY region, conflict is auto resolved (latest change wins)
+
+
+Aurora with warm standby - The secondary region's database acts as a read-only cluster (scaled down with smaller or fewer instances) until a failover occurs. Only Aurora is multi region, standard RDS sql DB's are not. Dynamo nosql is also multi region.
+
+DynamoDB Global Tables provide fully managed, multi-Region, and multi-active database replication.
+Dynamo has different tiers and services:
+On-Demand Capacity: The serverless option automatically scales your read and write capacity based on your application's traffic. You pay strictly per-request, making it ideal for unpredictable or spiky work
+
+Dynamo streams are event triggers and can call lambda
+
+-event driven integration with lambda - dynamo streams
+
+
+AWS RDS Read Replicas are read-only copies of your primary database that help scale read traffic, offload heavy analytical queries, and improve disaster recovery. They use asynchronous replication to copy data from the primary to the replica. 
+You can create up to 5 read replicas per primary database
+
+ on RDS db creation it asks you do you need encryption and kms key
+To encrypt its data, Amazon RDS uses an AWS Key Management Service key to encrypt these resources.
+
+
+
+
+DATABSE SCALING ON USAGE SPIKES:
+
+Dynamo is serverless, scales throughput, not replicas. It simply "absorbs" more requests. It is built for instant horizontal scaling and is faster.
+Aurora scales by creating more replicas and switching to more powerful server instances, this is slower and takes time.
+
+RDS has "events" and can trigger SNS/SQS. RDS event can't trigger lambda function. 
+RDS events native integration is with SNS, SNS can ping SQS and Lambda. 
+Alternative architecture (modern) is RD event - eventbridge > lambda
+The alternative nosql service has DynamoDB Streams they capture (inserts, updates, and deletes) in a DynamoDB table.
+DynamoDB Streams → Lambda = direct integration (no SNS/SQS needed)
+
+
+
+Company has Orcale db running on on-premises vm. This needs to be migrated to aws. Says the company wants disaster recovery with minimal effort and also to retain access to the OS level under the database:
+a - use aws Oracle custom with read replica in another region (this gives OS control, you can ssh to the host)
+b - use ec2 instance with db replication to another region (snapshots are slow recovery)
+c - use oracle rds with active cross-region backups to replicate snapshots to another region
+
+
+
+
+A is correct - use cloudwatch composite alerts: 
+1 alert for cpu, 1 alert for disk - composite alert will trigger if both are ON
+
+
+
+The oldest AWS service is Amazon Simple Queue Service (SQS), which was released in preview in November 2004. While Amazon Simple Storage Service (S3) is often credited as the first service launched under the official AWS umbrella in 2006, SQS predates it by more than two years.
+
+
+
+##################################### EXAM QUESTIONS ##################
+
+
+For running kubernetes on remote locations with intermittent connection - 
+
+AWS Snowball Edge + EKS Anywhere
+
+
+SNOWBALL EDGE DEVICE - that is a local computer
+Can run compute locally (EC2 / containers) without internet
+Sync back to AWS later when connection exists
+EKS Anywhere on Snowball service
+	• Run Kubernetes cluster locally on the device
+
+exam patterns with remote locations:
+Offline / disconnected → Snowball Edge 
+Edge Kubernetes → add EKS Anywhere
+Low latency but connected → Outposts
+
+-----------------------
+
+Relationship between vpc and region:
+
+1 VPC covers 1 region
+1 region contains availability zones
+1 vpc covers all availability zones in a region
+
+
+-------------------------------
+
+if you have on premises servers, many aws vpc networks with public and private networks, many nat gateways, many internte gateways, and vpn between on premises and aws, what would be simplest architecture to have everything connect. Does aws have something like a hub service, that can replace many nat and igw gatepoints?
+
+This is a hub-and-spoke network model.
+The hub service will be Transit Gateway (TGW).
+It acts as a central router/hub. Everything connects once → to TGW, not to each other.
+You will have fewer nat gateways:
+
+On-prem
+             |
+            VPN
+             |
+        [ Transit Gateway ]
+          /     |      \
+        VPC1   VPC2   VPC3   (spokes)
+           \     |     /
+         [ Egress / Hub VPC ]
+              |
+         NAT Gateway(s)
+              |
+         Internet Gateway
+
+Use 1 Internet Gateway per VPC and 1 NAT Gateway per Availability Zone for high availability.
+
+
+-----------------------
+
+
+another exam question: a vendor has their own aws organization. They have a software tool, that has some roles and permissions on their side. 
+How to allow this software as guest account/user with the same permissions with least effort?
+
+You create an IAM Role in your account
+attach the required permissions
+Add trust policy - allow vendor AWS account to assume it
+Vendor uses: sts:AssumeRole
+Use an external ID for secure third-party access.
+
+IAM Role + STS AssumeRole (+ External ID)
+
+
+----------------------
+
+
+service that allows you to deploy aws managed azure active directory in aws? And the question was you have on premises active directory. How to make on premises users have both on premises roles and aws ad roles, BUT AWS AD users to only hvae cloud permissions? Something like reverse forest / domain?
+
+Service is called - AWS Managed Microsoft AD.
+The question is about one-way trust. If it says all users should have all permissions: two-way trust.
+Correct answer here is: 
+Use AWS Managed Microsoft AD and configure a one-way trust from AWS AD to on-premises AD, so on-prem users can access AWS resources while AWS-only users cannot access on-premises resources.
+
+AD connector is NOT correct answer. It acts as a proxy, but does not define trust direction.
+AWS Managed Microsoft AD = supports trust + hybrid AD
